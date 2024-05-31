@@ -24,10 +24,6 @@ provider "google-beta" {
   region      = var.gcp_region
 }
 
-provider "aws" {
-  region = var.aws_region
-}
-
 provider "acme" {
   # server_url = "https://acme-staging-v02.api.letsencrypt.org/directory"
   server_url = "https://acme-v02.api.letsencrypt.org/directory"

@@ -10,8 +10,16 @@ output "prefix" {
   value = var.tag_prefix
 }
 
-output "region" {
+output "gcp_region" {
   value = var.gcp_region
+}
+
+output "gcp_project" {
+  value = var.gcp_project
+}
+
+output "gcp_location" {
+  value = var.gcp_location
 }
 
 output "pg_dbname" {

@@ -4,7 +4,7 @@ This is a repository to have a TFE FDO with kubernetes on GCP. This is using a P
 
 # Diagram
 
-![](diagram/diagram_tfe_fdo_gcp_external.png)  
+![](diagram/diagram_tfe_fdo_gcp_external_kubernetes.png)  
 
 # Prerequisites
 
@@ -49,36 +49,35 @@ You need to have valid TLS certificates that can be used with the DNS name you w
   
 The repo assumes you have no certificates and want to create them using Let's Encrypt and that your DNS domain is managed under AWS. 
 
+## kubectl
+Make sure kubectl is available on your system. Please see the documentation [here](https://kubernetes.io/docs/tasks/tools/).
+
+## helm
+Make sure helm is available on your system. Please see the documentation [here](https://helm.sh/docs/intro/install/)
+
 # How to
 
 - Clone the repository to your local machine
 ```sh
-git clone https://github.com/munnep/tfe_fdo_gcp_external.git
+git clone https://github.com/munnep/tfe_fdo_gcp_external_kubernetes.git
 ```
+- Add your gcp authentication key as `key.json` to the root directory of the repository
+
+## Now you will need to create the infrastructure for Kubernetes
 - Go to the directory  
 ```sh
-cd tfe_fdo_gcp_external
+cd tfe_fdo_gcp_external_kubernetes/infra
 ```
-- Add your gcp authentication key as `key.json`
 - create a file called `variables.auto.tfvars` with the following contents and your own values
 ```
 # General
-tag_prefix        = "tfe22"                       # TAG prefix for names to easily find your AWS resources
-dns_hostname      = "tfe22"                       # DNS hostname for the TFE
-dns_zonename      = "aws.munnep.com"              # DNS zone name to be used
-tfe_release       = "v202312-1"                   # Version number for the release to install. This must have a value
-tfe_password      = "Password#1"                  # TFE password for the dashboard and encryption of the data
-public_key        = "ssh-rsa AAAAB3NzaN"          # The public key for you to connect to the server over SSH
-certificate_email = "patrick.munne@hashicorp.com" # Your email address used by TLS certificate 
-tfe_license       = "02MV4UU43BK5HGYYTOJZ"        # license file being used
-rds_password      = "Password#1"                  # password used for PostgreSQL
-# AWS
-aws_region        = "eu-north-1"                  # AWS region creating the DNS records
+tag_prefix        = "tfe29"                       # TAG prefix for names to easily find your AWS resources
 # gcp
 gcp_region        = "europe-west4"                # GCP region creating the resources
 vnet_cidr         = "10.214.0.0/16"               # Network to be used
 gcp_project       = "hc-ff9323d13b0e4e0da8171"    # GCP project id (found in keys.json)
 gcp_location      = "EU"                          # location to create SQL and bucket 
+rds_password      = "Password#1"                  # password used for PostgreSQL
 ```
 - Terraform initialize
 ```
@@ -92,31 +91,79 @@ terraform plan
 ```
 terraform apply
 ```
-- Terraform output should create 27 resources and show you the public dns string you can use to connect to the TFE instance
+- Terraform output should create 18 resources and show you the public dns string you can use to connect to the TFE instance
 ```
-Apply complete! Resources: 27 to added, 0 to changed, 0 to destroyed.
+Plan: 18 to add, 0 to change, 0 to destroy.
 
 Outputs:
 
-ssh_tfe_server = "ssh ubuntu@tfe25.aws.munnep.com"
-tfe_appplication = "https://tfe25.aws.munnep.com"
-tfe_instance_public_ip = "34.32.208.215"
+Outputs:
+
+cluster-name = "tfe29-gke-cluster"
+gcp_location = "EU"
+gcp_project = "hc-fbb4ffd7539b49348762f97a2ea"
+gcp_region = "europe-west4"
+google_bucket = "tfe29-bucket"
+kubectl_environment = "gcloud container clusters get-credentials tfe29-gke-cluster --region europe-west4"
+pg_address = "10.140.1.3"
+pg_dbname = "tfe"
+pg_password = <sensitive>
+pg_user = "admin-tfe"
+prefix = "tfe29"
+redis_host = "10.140.0.3"
+redis_port = 6379
 ```
 - You can now login to the application with the username `admin` and password specified in your variables.
+
+## Now you will need to deploy Terraform Enterprise on to this cluster
+
+- Go to the directory `../tfe`
+```
+cd ../tfe
+```
+- Create a file called `variables.auto.tfvars` with the following contents
+```
+dns_hostname               = "tfe29"                                   # Hostname used for TFE
+dns_zonename               = "aws.munnep.com"                          # DNS zone where the hostname record can be created
+certificate_email          = "patrick.munne@hashicorp.com"             # email address used for creating valid certificates
+tfe_encryption_password    = "Password#1"                              # encryption key used by TFE
+tfe_license                = "02MV4UU43BK5HGYYTOJZ"                    # TFE license as a string
+replica_count              = 1                                         # Number of replicas for TFE you would like to have started
+tfe_license                = "<your_tfe_license_raw_text>"             # Your TFE license in raw text
+tfe_release                = "v202312-1"                               # The version of TFE application you wish to be deployed   
+# AWS
+region                     = "eu-north-1"                              # To create the DNS record on AWS          
+```
+- Initialize the environment
+```
+terraform init
+```
+- Create the environment
+```
+terraform apply
+```
+- This will create 7 resources
+```
+Apply complete! Resources: 7 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+execute_script_to_create_user_admin = "./configure_tfe.sh tfe29.aws.munnep.com patrick.munne@hashicorp.com Password#1"
+tfe_application_url = "https://tfe29.aws.munnep.com"
+```
+- Execute the `configure_tfe.sh tfe11.aws.munnep.com patrick.munne@hashicorp.com Password#1` script to do the following
+  - Create a user called admin with the password specified
+  - Create an organization called test
+- login to the application on url https://tfe29.aws.munnep.com
 
 # TODO
 
 # DONE
 - [x] build network according to the diagram
-- [x] use standard ubuntu 
-- [x] Create the disks where TFE should store it's data to be attached to the virtual machine
-- [x] create a virtual machine in a public network with public IP address.
-    - [x] firewall inbound are all from user building external ip
-    - [x] firewall outbound rules
-          user building external ip
-- [x] create an elastic IP to attach to the instance
-- [x] Create a valid certificate to use 
-- [x] point dns name to public ip address
-- [x] create a bucket
+- [x] create kubernetes
+- [x] Create redis
 - [x] create PostgreSQL instance
-- [x] install TFE
+- [x] create a bucket
+- [x] Create a valid certificate to use 
+- [x] install TFE using helm chart
+- [x] point dns name to loadbalancer 

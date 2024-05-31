@@ -32,22 +32,22 @@ DOCKER
   type = "kubernetes.io/dockerconfigjson"
 }
 
-# # # optional code to use the local repository download of the helm chart
-# # # resource "helm_release" "tfe" {
-# # #   name      = "terraform-enterprise"
-# # #   chart     = "${path.module}/terraform-enterprise-helm"
-# # #   namespace = "terraform-enterprise"
+# optional code to use the local repository download of the helm chart
+# resource "helm_release" "tfe" {
+#   name      = "terraform-enterprise"
+#   chart     = "${path.module}/terraform-enterprise-helm"
+#   namespace = "terraform-enterprise"
+#   values = [
+#     "${file("${path.module}/overrides.yaml")}"
+#   ]
+#   depends_on = [
+#     kubernetes_secret.example, kubernetes_namespace.terraform-enterprise
+#   ]
+# }
 
-# # #   values = [
-# # #     "${file("${path.module}/overrides.yaml")}"
-# # #   ]
 
-# # #   depends_on = [
-# # #     kubernetes_secret.example, kubernetes_namespace.terraform-enterprise
-# # #   ]
-# # # }
 
-# # # The default for using the helm chart from internet
+# The default for using the helm chart from internet
 resource "helm_release" "tfe" {
   name       = local.namespace
   repository = "helm.releases.hashicorp.com"
@@ -60,7 +60,7 @@ replace = true
   values = [
     templatefile("${path.module}/overrides.yaml", {
       replica_count = var.replica_count
-      region        = data.terraform_remote_state.infra.outputs.region
+      region        = data.terraform_remote_state.infra.outputs.gcp_region
       enc_password  = var.tfe_encryption_password
       pg_dbname     = data.terraform_remote_state.infra.outputs.pg_dbname
       pg_user       = data.terraform_remote_state.infra.outputs.pg_user
@@ -68,7 +68,7 @@ replace = true
       pg_address    = data.terraform_remote_state.infra.outputs.pg_address
       fqdn          = "${var.dns_hostname}.${var.dns_zonename}"
       google_bucket = data.terraform_remote_state.infra.outputs.google_bucket
-      gcp_project   = var.gcp_project
+      gcp_project   = data.terraform_remote_state.infra.outputs.gcp_project
       cert_data     = "${base64encode(local.full_chain)}"
       key_data      = "${base64encode(nonsensitive(acme_certificate.certificate.private_key_pem))}"
       ca_cert_data  = "${base64encode(local.full_chain)}"
@@ -82,23 +82,3 @@ replace = true
     kubernetes_secret.example, kubernetes_namespace.terraform-enterprise
   ]
 }
-
-# data "kubernetes_service" "example" {
-#   metadata {
-#     name      = local.namespace
-#     namespace = local.namespace
-#   }
-#   depends_on = [helm_release.tfe]
-# }
-
-
-# resource "aws_route53_record" "tfe" {
-#   zone_id = data.aws_route53_zone.selected.zone_id
-#   name    = var.dns_hostname
-#   type    = "CNAME"
-#   ttl     = "300"
-#   records = [data.kubernetes_service.example.status.0.load_balancer.0.ingress.0.hostname]
-
-#   depends_on = [helm_release.tfe]
-# }
-

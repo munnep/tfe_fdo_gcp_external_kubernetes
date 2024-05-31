@@ -14,14 +14,14 @@ terraform {
 provider "google" {
   # Configuration options
   credentials = file("${path.module}/../key.json")
-  project     = var.gcp_project
-  region      = var.gcp_region
+  project     = data.terraform_remote_state.infra.outputs.gcp_project
+  region      = data.terraform_remote_state.infra.outputs.gcp_region
 }
 
 provider "google-beta" {
   credentials = file("${path.module}/../key.json")
-  project     = var.gcp_project
-  region      = var.gcp_region
+  project     = data.terraform_remote_state.infra.outputs.gcp_project
+  region      = data.terraform_remote_state.infra.outputs.gcp_region
 }
 
 provider "aws" {
@@ -47,7 +47,7 @@ data "google_client_config" "provider" {}
 
 data "google_container_cluster" "my_cluster" {
   name     = data.terraform_remote_state.infra.outputs.cluster-name
-  location = var.gcp_region
+  location = data.terraform_remote_state.infra.outputs.gcp_region
 }
 
 provider "kubernetes" {

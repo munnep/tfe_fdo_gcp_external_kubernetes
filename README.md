@@ -91,7 +91,7 @@ terraform plan
 ```
 terraform apply
 ```
-- Terraform output should create 18 resources and show you the public dns string you can use to connect to the TFE instance
+- Terraform output should create 18 resources and show outputs used by the next steps
 ```
 Plan: 18 to add, 0 to change, 0 to destroy.
 

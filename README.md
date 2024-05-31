@@ -113,7 +113,6 @@ prefix = "tfe29"
 redis_host = "10.140.0.3"
 redis_port = 6379
 ```
-- You can now login to the application with the username `admin` and password specified in your variables.
 
 ## Now you will need to deploy Terraform Enterprise on to this cluster
 

@@ -19,6 +19,7 @@ Have your GCP credentials configured
 gcloud config set account <your account>
 gcloud auth activate-service-account --key-file=key.json
 gcloud config set project <your project>
+gcloud auth application-default login
 export USE_GKE_GCLOUD_AUTH_PLUGIN=True      # needed to work correctly with kubectl and getting credentials later
 ```
 
@@ -28,6 +29,15 @@ export USE_GKE_GCLOUD_AUTH_PLUGIN=True      # needed to work correctly with kube
 - Google Cloud Memorystore for Redis API
 - Kubernetes Engine API
 
+Using gcloud to enable them
+```
+gcloud services enable serviceusage.googleapis.com      # this might give an error to be enabled from the console first with a link. 
+gcloud services enable sqladmin.googleapis.com
+gcloud services enable redis.googleapis.com
+gcloud services enable container.googleapis.com
+```
+
+
 #### Following roles assigned to your account
 - Compute Network Admin
 - Compute Storage Admin
@@ -35,7 +45,8 @@ export USE_GKE_GCLOUD_AUTH_PLUGIN=True      # needed to work correctly with kube
 - Project IAM Admin
 - kubernetes engine admin
 - kubernetes engine cluster admin
-
+or
+- owner
 
 ## AWS
 

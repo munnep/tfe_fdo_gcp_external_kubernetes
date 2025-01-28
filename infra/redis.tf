@@ -1,5 +1,5 @@
 resource "google_redis_instance" "cache" {
-  name           = "memory-cache"
+  name           = "memory-cache${var.tag_prefix}"
   memory_size_gb = 1
 
   authorized_network = google_compute_network.tfe_vpc.id

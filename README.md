@@ -2,6 +2,8 @@
 
 This is a repository to have a TFE FDO with kubernetes on GCP. This is using a PostgreSQL, Redis and a bucket from GCP. 
 
+The kubernetes configuration can be setup with the autopilot feature enabled or disabled. When the gke autopilot configuration is enabled it will automatically add nodes to the cluster to make sure it is able to start all the agent runs for Terraform Enterprise. 
+
 # Diagram
 
 ![](diagram/diagram_tfe_fdo_gcp_external_kubernetes.png)  
@@ -82,13 +84,14 @@ cd tfe_fdo_gcp_external_kubernetes/infra
 - create a file called `variables.auto.tfvars` with the following contents and your own values
 ```
 # General
-tag_prefix        = "tfe29"                       # TAG prefix for names to easily find your AWS resources
-# gcp
-gcp_region        = "europe-west4"                # GCP region creating the resources
-vnet_cidr         = "10.214.0.0/16"               # Network to be used
-gcp_project       = "hc-ff9323d13b0e4e0da8171"    # GCP project id (found in keys.json)
-gcp_location      = "EU"                          # location to create SQL and bucket 
-rds_password      = "Password#1"                  # password used for PostgreSQL
+tag_prefix             = "tfe29"                       # TAG prefix for names to easily find your AWS resources
+# gcp     
+gcp_region             = "europe-west4"                # GCP region creating the resources
+vnet_cidr              = "10.214.0.0/16"               # Network to be used
+gcp_project            = "hc-ff9323d13b0e4e0da8171"    # GCP project id (found in keys.json)
+gcp_location           = "EU"                          # location to create SQL and bucket 
+rds_password           = "Password#1"                  # password used for PostgreSQL
+gke_auto_pilot_enabled = false                         # gke cluster created with the autopilot feature
 ```
 - Terraform initialize
 ```
@@ -102,9 +105,9 @@ terraform plan
 ```
 terraform apply
 ```
-- Terraform output should create 18 resources and show outputs used by the next steps
+- Terraform output should create 20 resources and show outputs used by the next steps
 ```
-Plan: 18 to add, 0 to change, 0 to destroy.
+Plan: 20 to add, 0 to change, 0 to destroy.
 
 Outputs:
 
@@ -123,6 +126,7 @@ pg_user = "admin-tfe"
 prefix = "tfe29"
 redis_host = "10.140.0.3"
 redis_port = 6379
+gke_auto_pilot_enabled = false
 ```
 
 ## Now you will need to deploy Terraform Enterprise on to this cluster
@@ -140,7 +144,7 @@ tfe_encryption_password    = "Password#1"                              # encrypt
 tfe_license                = "02MV4UU43BK5HGYYTOJZ"                    # TFE license as a string
 replica_count              = 1                                         # Number of replicas for TFE you would like to have started
 tfe_license                = "<your_tfe_license_raw_text>"             # Your TFE license in raw text
-tfe_release                = "v202312-1"                               # The version of TFE application you wish to be deployed   
+tfe_release                = "v202501-1"                               # The version of TFE application you wish to be deployed   
 # AWS
 region                     = "eu-north-1"                              # To create the DNS record on AWS          
 ```

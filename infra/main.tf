@@ -39,7 +39,7 @@ resource "google_storage_bucket" "tfe-bucket" {
 resource "google_compute_global_address" "private_ip_address" {
   # provider = google-beta
 
-  name          = "tfe-vpc-internal"
+  name          = "tfe-vpc-internal2"
   purpose       = "VPC_PEERING"
   address_type  = "INTERNAL"
   prefix_length = 16
@@ -74,7 +74,7 @@ resource "google_sql_database_instance" "instance" {
       enable_private_path_for_google_cloud_services = true
     }
   }
- deletion_protection = false
+  deletion_protection = false
 }
 
 resource "google_project_iam_binding" "example_storage_admin_binding" {
@@ -88,8 +88,8 @@ resource "google_project_iam_binding" "example_storage_admin_binding" {
 
 # doing it all on bucket permissions
 resource "google_service_account" "service_account" {
-  account_id   = "${var.tag_prefix}-bucket-test"
-  display_name = "${var.tag_prefix}-bucket-test"
+  account_id   = "${var.tag_prefix}-bucket-test2"
+  display_name = "${var.tag_prefix}-bucket-test2"
   project      = var.gcp_project
 }
 
@@ -97,6 +97,29 @@ resource "google_service_account_key" "tfe_bucket" {
   service_account_id = google_service_account.service_account.name
 }
 
+
+data "google_project" "project" {
+}
+
+
+# these are for the service account when using auto-pilot GKE
+resource "google_storage_bucket_iam_member" "object_viewer_binding" {
+  bucket = google_storage_bucket.tfe-bucket.name
+
+  role   = "roles/storage.objectAdmin"
+  member = "principal://iam.googleapis.com/projects/${data.google_project.project.number}/locations/global/workloadIdentityPools/${data.google_project.project.project_id}.svc.id.goog/subject/ns/terraform-enterprise/sa/terraform-enterprise"
+}
+
+resource "google_storage_bucket_iam_member" "object_viewer_binding2" {
+  bucket = google_storage_bucket.tfe-bucket.name
+
+  role   = "roles/storage.legacyBucketReader"
+  member = "principal://iam.googleapis.com/projects/${data.google_project.project.number}/locations/global/workloadIdentityPools/${data.google_project.project.project_id}.svc.id.goog/subject/ns/terraform-enterprise/sa/terraform-enterprise"
+}
+
+
+
+# these are for the service account when using non auto-pilot GKE
 resource "google_storage_bucket_iam_member" "member-object" {
   bucket = google_storage_bucket.tfe-bucket.name
   role   = "roles/storage.objectAdmin"
@@ -117,8 +140,8 @@ resource "google_sql_database" "tfe-db" {
 
 resource "google_sql_user" "tfeadmin" {
   # provider = google-beta
-  name     = "admin-tfe"
-  instance = google_sql_database_instance.instance.name
-  password = var.rds_password
+  name            = "admin-tfe"
+  instance        = google_sql_database_instance.instance.name
+  password        = var.rds_password
   deletion_policy = "ABANDON"
 }

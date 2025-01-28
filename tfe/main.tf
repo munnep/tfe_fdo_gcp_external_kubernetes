@@ -1,7 +1,8 @@
 
 locals {
-  namespace  = "terraform-enterprise"
-  full_chain = "${acme_certificate.certificate.certificate_pem}${acme_certificate.certificate.issuer_pem}"
+  namespace       = "terraform-enterprise"
+  full_chain      = "${acme_certificate.certificate.certificate_pem}${acme_certificate.certificate.issuer_pem}"
+  gke_environment = data.terraform_remote_state.infra.outputs.gke_auto_pilot_enabled ? "gke-auto-pilot" : "gke"
 }
 
 
@@ -14,7 +15,7 @@ resource "kubernetes_namespace" "terraform-enterprise" {
 resource "kubernetes_secret" "example" {
   metadata {
     name      = local.namespace
-    namespace = local.namespace
+    namespace = kubernetes_namespace.terraform-enterprise.metadata.0.name
   }
 
   data = {
@@ -46,6 +47,17 @@ DOCKER
 # }
 
 
+# resource "kubernetes_service_account" "bucket_access" {
+#   metadata {
+#     name      = "bucket-access"
+#     namespace = "terraform-enterprise"
+#     annotations = {
+#       "iam.gke.io/gcp-service-account" = "tfe23-bucket-test2@hc-a0f1bfc7007d44728b4b096ce4e.iam.gserviceaccount.com"
+#     }
+#   }
+# }
+
+
 
 # The default for using the helm chart from internet
 resource "helm_release" "tfe" {
@@ -54,11 +66,11 @@ resource "helm_release" "tfe" {
   chart      = "hashicorp/terraform-enterprise"
   namespace  = local.namespace
 
-  force_update = true
-cleanup_on_fail = true
-replace = true
+  force_update    = true
+  cleanup_on_fail = true
+  replace         = true
   values = [
-    templatefile("${path.module}/overrides.yaml", {
+    templatefile("${path.module}/overrides-${local.gke_environment}.yaml", {
       replica_count = var.replica_count
       region        = data.terraform_remote_state.infra.outputs.gcp_region
       enc_password  = var.tfe_encryption_password

@@ -33,5 +33,5 @@ variable "tfe_encryption_password" {
   description = "TFE encryption password"
 }
 
-variable "replica_count" { 
+variable "replica_count" {
 }

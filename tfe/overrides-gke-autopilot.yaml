@@ -1,0 +1,56 @@
+replicaCount: ${replica_count}
+tls:
+  certData: ${cert_data}
+  keyData: ${key_data}
+  caCertData: ${ca_cert_data}
+image:
+  repository: images.releases.hashicorp.com
+  name: hashicorp/terraform-enterprise
+  tag: ${tfe_release}
+
+pod:
+  annotations:
+    cluster-autoscaler.kubernetes.io/safe-to-evict: "false"  
+resources:
+  requests:
+    memory: "8000Mi"
+    cpu: "6"
+nodeSelector:
+  cloud.google.com/compute-class: "Balanced"
+
+agentWorkerPodTemplate :
+  metadata :
+    annotations :
+      "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
+  spec :
+    nodeSelector :
+      cloud.google.com/compute-class: "Balanced"
+    containers:
+      - name: "tfc-agent"
+        image:  "hashicorp/tfc-agent:1.17.5"
+        resources :
+          requests :
+            memory: 1Gi
+            cpu: 1  
+env:
+  variables:
+    TFE_CAPACITY_MEMORY: 10000
+    TFE_RUN_PIPELINE_KUBERNETES_WORKER_TIMEOUT: 600
+    TFE_HOSTNAME: ${fqdn}
+    TFE_OPERATIONAL_MODE: active-active
+    TFE_DATABASE_HOST: ${pg_address}
+    TFE_DATABASE_NAME: ${pg_dbname}
+    TFE_DATABASE_USER: ${pg_user}
+    TFE_DATABASE_PARAMETERS: sslmode=require
+    # Object storage settings.
+    TFE_OBJECT_STORAGE_TYPE: "google"
+    TFE_OBJECT_STORAGE_GOOGLE_PROJECT: ${gcp_project}
+    TFE_OBJECT_STORAGE_GOOGLE_BUCKET: ${google_bucket}
+    TFE_REDIS_HOST: ${redis_host}:${redis_port}
+    TFE_REDIS_USE_AUTH: false
+    TFE_IACT_SUBNETS: "0.0.0.0/0"
+  secrets:
+    TFE_DATABASE_PASSWORD: ${pg_password}
+    TFE_ENCRYPTION_PASSWORD:  ${enc_password}
+    TFE_OBJECT_STORAGE_S3_SERVER_SIDE_ENCRYPTION: AES256
+    TFE_LICENSE: ${tfe_license} 

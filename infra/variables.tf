@@ -21,3 +21,7 @@ variable "gcp_location" {
 variable "rds_password" {
   description = "password used to connect to database"
 }
+
+variable "gke_auto_pilot_enabled" {
+  description = "create a cluster with gke-auto-pilot true or false"
+}

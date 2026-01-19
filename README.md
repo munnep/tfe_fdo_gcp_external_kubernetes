@@ -37,6 +37,7 @@ gcloud services enable serviceusage.googleapis.com      # this might give an err
 gcloud services enable sqladmin.googleapis.com
 gcloud services enable redis.googleapis.com
 gcloud services enable container.googleapis.com
+gcloud services enable servicenetworking.googleapis.com
 ```
 
 

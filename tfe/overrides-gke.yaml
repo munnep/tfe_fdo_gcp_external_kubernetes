@@ -1,4 +1,14 @@
 replicaCount: ${replica_count}
+
+resources:
+  requests:
+    memory: "1000Mi"
+    cpu: "2"
+  limits:
+    memory: "2500Mi"
+    cpu: "2"
+
+    
 tls:
   certData: ${cert_data}
   keyData: ${key_data}
@@ -10,6 +20,7 @@ image:
 env:
   variables:
     TFE_HOSTNAME: ${fqdn}
+    # TFE_CAPACITY_MEMORY: 12000
     TFE_OPERATIONAL_MODE: active-active
     TFE_DATABASE_HOST: ${pg_address}
     TFE_DATABASE_NAME: ${pg_dbname}

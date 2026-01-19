@@ -15,6 +15,9 @@ resources:
   requests:
     memory: "8000Mi"
     cpu: "6"
+  limits:
+    memory: "8000Mi"
+    cpu: "6"  
 nodeSelector:
   cloud.google.com/compute-class: "Balanced"
 
@@ -27,17 +30,23 @@ agentWorkerPodTemplate :
       cloud.google.com/compute-class: "Balanced"
     containers:
       - name: "tfc-agent"
-        image:  "hashicorp/tfc-agent:1.17.5"
+        image:  "hashicorp/tfc-agent:1.25.0"
         resources :
           requests :
-            memory: 1Gi
-            cpu: 1  
+            memory: 2Gi
+            cpu: 2
+          limits :
+            memory: 2Gi
+            cpu: 2  
+
+
+
 env:
   variables:
-    TFE_CAPACITY_MEMORY: 10000
+    # TFE_CAPACITY_MEMORY: 12000
     TFE_RUN_PIPELINE_KUBERNETES_WORKER_TIMEOUT: 600
     TFE_HOSTNAME: ${fqdn}
-    TFE_OPERATIONAL_MODE: active-active
+    # TFE_OPERATIONAL_MODE: active-active
     TFE_DATABASE_HOST: ${pg_address}
     TFE_DATABASE_NAME: ${pg_dbname}
     TFE_DATABASE_USER: ${pg_user}

@@ -36,7 +36,7 @@ output "pg_user" {
 
 output "pg_password" {
   value     = var.rds_password
-  sensitive = true
+  sensitive = false
 }
 
 output "pg_address" {

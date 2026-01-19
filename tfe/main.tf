@@ -2,7 +2,7 @@
 locals {
   namespace       = "terraform-enterprise"
   full_chain      = "${acme_certificate.certificate.certificate_pem}${acme_certificate.certificate.issuer_pem}"
-  gke_environment = data.terraform_remote_state.infra.outputs.gke_auto_pilot_enabled ? "gke-auto-pilot" : "gke"
+  gke_environment = data.terraform_remote_state.infra.outputs.gke_auto_pilot_enabled ? "gke-autopilot" : "gke"
 }
 
 

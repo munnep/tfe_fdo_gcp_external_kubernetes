@@ -25,9 +25,10 @@ resource "google_container_node_pool" "primary_preemptible_nodes" {
   cluster    = google_container_cluster.primary.name
   node_count = 1
 
+
   node_config {
     preemptible  = true
-    machine_type = "n2-standard-4"
+    machine_type = "n2-standard-8"
 
     # Google recommends custom service accounts that have cloud-platform scope and permissions granted via IAM Roles.
     service_account = google_service_account.service_account.email
